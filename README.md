@@ -9,4 +9,4 @@ pip install -r requirements.txt
 docker run --name redis_client -p 6379:6379 -d redis
 3) Перейдите в директорию app и запустите приложение:
 cd app
-python main.py
+python -m main
