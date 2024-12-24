@@ -6,7 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="51c667e4-e9c2-4dce-9759-e089621d6eff" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/services/ml_service/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/services/ml_service/MLService.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/core/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/core/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/redis/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/redis_client/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/redis/redis_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/redis_client/redis_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/services/etl_service/ETLService.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/services/etl_service/ETLService.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/services/etl_service/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/services/etl_service/__init__.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,6 +27,9 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectColorInfo"><![CDATA[{
   "associatedIndex": 7

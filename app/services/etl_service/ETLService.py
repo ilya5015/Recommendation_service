@@ -1,9 +1,8 @@
 import pandas as pd
 import psycopg2
-from redis import Redis
 
 class ETLService:
-    def __init__(self, redis_client: Redis):
+    def __init__(self, redis_client):
         self.redis_client = redis_client
 
     def extract(self, postgres_conn_str: str, query: str = 'SELECT * FROM table_name') -> pd.DataFrame:
