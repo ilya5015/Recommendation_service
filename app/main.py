@@ -2,14 +2,15 @@ from fastapi import FastAPI
 import uvicorn
 from api import router as api_router
 from core.config import settings
-from services.etl_service.ETLService import ETLService
-from redis_client.redis_config import RedisClient
+from redis_client import redis_cli
 
-redis_client_instance = RedisClient(settings.db).get_client()
-etl_service = ETLService(redis_client_instance)
+import sys
+sys.path.insert(0, ".")
 
 main_app = FastAPI()
 main_app.include_router(api_router)
+
+redis_cli.ping()
 
 if __name__ == '__main__':
     uvicorn.run(
@@ -18,5 +19,7 @@ if __name__ == '__main__':
         port=settings.run.port,
         reload=True
     )
+
+
 
 

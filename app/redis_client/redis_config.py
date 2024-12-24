@@ -1,9 +1,16 @@
 import redis
 
-class RedisClient:
-    def __init__(self, settings):
-        self.client = redis.Redis(host=settings.redis_host, port=settings.redis_port)
+import sys
+sys.path.append('/')
 
-    def get_client(self):
-        return self.client
+from app.core.config import settings
 
+
+def initialize_db():
+    redis_cli = redis.Redis(
+        host=settings.db.redis_host,
+        port=settings.db.redis_port,
+        decode_responses=True
+    )
+
+    return redis_cli
