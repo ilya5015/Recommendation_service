@@ -6,13 +6,12 @@ class RunConfig(BaseModel):
     host: str = "localhost"
     port: int = 8000
 
+class DatabaseConfig(BaseModel):
+    redis_host: str = "redis"  # или "localhost"
+    redis_port: int = 6379
+
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        case_sensitive=False,
-        env_nested_delimiter="__",
-        env_prefix="APP__",
-    )
+    db: DatabaseConfig = DatabaseConfig()
     run: RunConfig = RunConfig()
 
 settings = Settings()
