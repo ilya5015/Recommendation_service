@@ -1,13 +1,20 @@
 import pandas as pd
+import psycopg2
 from redis import Redis
 
 class ETLService:
     def __init__(self, redis_client: Redis):
         self.redis_client = redis_client
 
-    def extract(self, file_path: str) -> pd.DataFrame:
+    def extract(self, postgres_conn_str: str, query: str = 'SELECT * FROM table_name') -> pd.DataFrame:
         """Извлечение данных из CSV файла."""
-        return pd.read_csv(file_path)
+        conn = psycopg2.connect(postgres_conn_str)
+        cursor = conn.cursor()
+        cursor.execute(query)
+        data = cursor.fetchall()
+        conn.close()
+        df = pd.DataFrame(data, columns=[desc[0] for desc in cursor.description])
+        return df
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
         """Трансформация данных для подготовки к загрузке."""
