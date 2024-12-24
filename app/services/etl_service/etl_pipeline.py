@@ -9,7 +9,7 @@ def etl_pipeline():
     print('pipeline pending')
     etl.run_etl('')
 def start_etl_pipeline():
-    schedule.every(24).hourds.do(etl_pipeline)
+    schedule.every(3).seconds.do(etl_pipeline)
     while True:
         schedule.run_pending()
         time.sleep(1)
