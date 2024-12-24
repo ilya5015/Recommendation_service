@@ -28,6 +28,6 @@ class ETLService:
 
     def run_etl(self, file_path: str):
         """Запуск полного ETL процесса."""
-        df = self.extract(file_path)
-        transformed_data = self.transform(df)
-        self.load(transformed_data)
+        #df = self.extract(file_path)
+        #transformed_data = self.transform(df)
+        #self.load(transformed_data)
