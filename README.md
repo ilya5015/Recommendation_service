@@ -4,7 +4,7 @@
 Для активации виртуального окружения используйте следующую команду: .venv\Scripts\activate
 . 
 2) Установите необходимые зависимости:
-pip install requirements.txt
+pip install -r requirements.txt
 3) Разверните БД в Docker:
 docker run --name redis_client -p 6379:6379 -d redis
 3) Перейдите в директорию app и запустите приложение:
