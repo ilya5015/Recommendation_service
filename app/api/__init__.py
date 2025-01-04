@@ -1,5 +1,11 @@
-from fastapi import APIRouter
-from .associate_rules_router import router as associate_rules_router
+from fastapi import APIRouter, HTTPException, Depends, FastAPI, Request
 
-router = APIRouter()
-router.include_router(associate_rules_router)
+router = APIRouter(prefix='/api')
+
+def get_redis(request: Request):
+    return request.app.state.redis
+
+@router.get("/")
+async def create_item(redis=Depends(get_redis)):
+    redis.set('key', 'value')
+    return {"message": "Item saved", "key": 'key', "value": 'value'}

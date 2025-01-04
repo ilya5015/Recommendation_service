@@ -1,11 +1,11 @@
 1) Создайте виртальное окружение и активируйте его:
 Для создания: python3 -m venv venv, где 2 аргумент venv — это имя вашего виртуального окружения.
 После выполнения команды будет создана папка с именем myenv, содержащая все необходимые файлы для виртуального окружения. 
-Для активации виртуального окружения используйте следующую команду: .venv\Scripts\activate
-. 
+Для активации виртуального окружения используйте следующую команду. Для windows: .venv\Scripts\activate Для linux/macos: source venv/bin/activate
+
 2) Установите необходимые зависимости:
-pip install -r requirements.txt
+ pip install -r requirements.txt
 3) Разверните БД в Docker:
-docker run --name redis_client -p 6379:6379 -d redis
+ docker run --name redis_client -p 6379:6379 -d redis
 3) Перейдите в корень проекта и запустите приложение:
-\n python -m app.main
+ python3 -m app.main

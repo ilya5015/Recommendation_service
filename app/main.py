@@ -5,17 +5,17 @@ from fastapi import FastAPI
 import uvicorn
 from api import router as api_router
 from core.config import settings
+from redis_client.redis_config import initialize_db
 from contextlib import asynccontextmanager
-from services.etl_service.etl_pipeline_schedule import start_etl_pipeline
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
-        print('ETL process start')
-        start_etl_pipeline()
+        app.state.redis = initialize_db()
         yield
     finally:
-        print('ETL process stopped')
+        app.state.redis.close()
+        
 
 
 main_app = FastAPI(lifespan=lifespan)
@@ -27,8 +27,7 @@ if __name__ == '__main__':
         "main:main_app",
         host=settings.run.host,
         port=settings.run.port,
-        reload=False
-    )
+        reload=False)
 
 
 
