@@ -8,12 +8,14 @@ from pyspark.ml.linalg import DenseVector
 from pyspark.ml.stat import Correlation
 
 class RecommendationModel:
-    def __init__(self, orders_df: DataFrame):
-        self.orders_df = orders_df
+    def __init__(self):
+        self.orders_df = None
         self.user_product_matrix = None
         self.user_similarity = None
 
-    def fit(self):
+    def fit(self, orders_df: DataFrame):
+        self.orders_df = orders_df
+
         # матрица пользователей и продуктов
         self.user_product_matrix = (self.orders_df
                                      .groupBy('user_id')

@@ -7,7 +7,7 @@ class RunConfig(BaseModel):
     port: int = 8000
 
 class DatabaseConfig(BaseModel):
-    redis_host: str = "localhost"  # или "localhost"
+    redis_host: str = "localhost"  
     redis_port: int = 6379
 
 class Settings(BaseSettings):
