@@ -29,6 +29,7 @@ class ETL:
         # Загрузка данных в целевую таблицу (можно настроить под ваши нужды)
         print('pipeline load stage')
         print(transformed_df)
+        return transformed_df
 
     def run_pipeline(self):
         order_items_df, orders_df = self.extract()
