@@ -8,11 +8,11 @@ class ETL:
 
     def extract(self):
         # Извлечение данных из таблицы order_items
-        query_items = 'SELECT order_id, product_id, quantity FROM order_items'
+        query_items = "SELECT order_id, product_id, quantity FROM order_items;"
         order_items_df = pd.read_sql(query_items, self.engine)
 
         # Извлечение данных из таблицы orders для получения user_id
-        query_orders = "SELECT order_id, user_id FROM orders"
+        query_orders = "SELECT order_id, user_id FROM orders;"
         orders_df = pd.read_sql(query_orders, self.engine)
 
         return order_items_df, orders_df
@@ -27,11 +27,10 @@ class ETL:
 
     def load(self, transformed_df):
         # Загрузка данных в целевую таблицу (можно настроить под ваши нужды)
-        print('pipeline load stage')
-        print(transformed_df)
+        print('pipeline load stage', transformed_df)
         return transformed_df
 
     def run_pipeline(self):
         order_items_df, orders_df = self.extract()
         transformed_df = self.transform(order_items_df, orders_df)
-        self.load(transformed_df)
+        return self.load(transformed_df)

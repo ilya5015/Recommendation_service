@@ -5,7 +5,7 @@ import time
 from .ETL import ETL
 
 class ModelScheduler:
-    def __init__(self, model, redis_client):
+    def __init__(self, model, redis_client, database_url):
         self.model = model  # экземпляр рекомендательной модели
         self.redis_client = redis_client  # клиент Redis
         self.scheduler = BackgroundScheduler()
@@ -15,16 +15,12 @@ class ModelScheduler:
             id='model_recommendation_job',
             replace_existing=True
         )
+        self.database_url = database_url
         
 
     def run_task(self):
-        #self.model.fit() # Тренировка модели
-        #recommendations = self.model.recommend()  # Вызов рекомендаций
-        
-        # Сохранение рекомендаций в Redis
-        #self.redis_client.set('recommendations', recommendations)
-        etl = ETL('')
-        etl.run_pipeline()
+        etl = ETL(self.database_url)
+        loaded_data = etl.run_pipeline()
 
     def start(self):
         self.scheduler.start()

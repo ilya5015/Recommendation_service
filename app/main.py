@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
         
         model = RecommendationModel()
         
-        scheduler = ModelScheduler(model, app.state.redis)
+        scheduler = ModelScheduler(model, app.state.redis, settings.db.database_url)
         
         scheduler.start()
         yield
