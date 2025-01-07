@@ -7,5 +7,6 @@
  pip install -r requirements.txt
 3) Разверните БД в Docker:
  docker run --name redis_client -p 6379:6379 -d redis
-3) Перейдите в корень проекта и запустите приложение:
+4) Переименуйте файл .env.example в .env, задайте свои параметры url бд, хоста и порта для redis
+5) Перейдите в корень проекта и запустите приложение:
  python3 -m app.main
