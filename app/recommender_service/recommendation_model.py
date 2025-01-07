@@ -8,36 +8,35 @@ from pyspark.ml.linalg import DenseVector
 from pyspark.ml.stat import Correlation
 
 class RecommendationModel:
-    def __init__(self):
+    def __init__(self, spark):
         self.orders_df = None
         self.user_product_matrix = None
         self.user_similarity = None
+        self.spark = spark
 
     def fit(self, orders_df: DataFrame):
-        self.orders_df = orders_df
-
+        self.orders_df = self.spark.createDataFrame(orders_df)
+        print(self.orders_df.groupby('user_id'))
         # матрица пользователей и продуктов
-        self.user_product_matrix = (self.orders_df
-                                     .groupBy('user_id')
-                                     .agg(*[spark_sum(col(product)).alias(product) for product in self.orders_df.columns if product != 'user_id']))
-
+        self.user_product_matrix = self.orders_df.groupby('user_id').agg(*[spark_sum(col(product)).alias(product) for product in self.orders_df.columns if product != 'user_id'])
         # векторное представление
         vector_assembler = VectorAssembler(inputCols=self.user_product_matrix.columns[1:], outputCol='features')
         self.user_product_matrix = vector_assembler.transform(self.user_product_matrix)
 
         # косинусное сходство
         correlation_matrix = Correlation.corr(self.user_product_matrix, 'features').head()[0]
+        print(correlation_matrix)
+
         self.user_similarity = correlation_matrix.toArray()
+
 
     def recommend(self, user_id, top_n=5):
         if user_id not in self.user_product_matrix.select('user_id').rdd.flatMap(lambda x: x).collect():
             raise ValueError("Пользователь не найден в данных.")
-
+        
         user_index = self.user_product_matrix.filter(col('user_id') == user_id).collect()[0][0]
-
         # сходство пользователя с другими
-        user_similarities = self.user_similarity[user_index]
-
+        user_similarities = self.user_similarity[user_index - 1]
         # индексы пользователей, отсортированные по убыванию сходства
         similar_users_indices = user_similarities.argsort()[::-1]
 
@@ -67,6 +66,15 @@ class RecommendationModel:
 
         # сортировка продуктов по оценкам и возврат топ N
         recommended_products = sorted(product_scores.items(), key=lambda x: x[1], reverse=True)
-    
         return [product for product, score in recommended_products[:top_n]]
+
+    def recommend_all(self):
+        # Извлечение значений колонки 'user_id'
+        user_ids = self.user_product_matrix.select("user_id").collect()
+
+        for row in user_ids:
+            print(row['user_id'])
+            recommendations = self.recommend(row['user_id'])
+            
+
 

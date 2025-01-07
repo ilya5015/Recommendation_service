@@ -10,20 +10,32 @@ from contextlib import asynccontextmanager
 from recommender_service.recommendation_model import RecommendationModel
 from recommender_service.scheduler import ModelScheduler
 
+from pyspark.sql import SparkSession
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    scheduler = None 
     try:
         app.state.redis = initialize_db()
         
-        model = RecommendationModel()
-        
+        spark = SparkSession.builder \
+                .appName("RecommendationService") \
+                .getOrCreate()
+
+        model = RecommendationModel(spark)
+
         scheduler = ModelScheduler(model, app.state.redis, settings.db.database_url)
-        
+
         scheduler.start()
         yield
+    except Exception as e:
+        print("Error during lifespan initialization:", e)
     finally:
-        scheduler.stop()
-        app.state.redis.close()
+        if scheduler is not None:
+            scheduler.stop()  # Останавливаем только если scheduler был инициализирован
+
+        spark.stop()
+        app.state.redis.close() 
         
 
 

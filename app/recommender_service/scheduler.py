@@ -11,18 +11,20 @@ class ModelScheduler:
         self.scheduler = BackgroundScheduler()
         self.scheduler.add_job(
             self.run_task,
-            trigger=IntervalTrigger(seconds=5),
+            trigger=IntervalTrigger(minutes=30),
             id='model_recommendation_job',
             replace_existing=True
         )
-        self.database_url = database_url
-        
+        self.database_url = database_url    
 
     def run_task(self):
         etl = ETL(self.database_url)
-        loaded_data = etl.run_pipeline()
+        orders_df = etl.run_pipeline()
+        self.model.fit(orders_df)
+        predictions = self.model.recommend_all()
 
     def start(self):
+        self.run_task()
         self.scheduler.start()
 
     def stop(self):

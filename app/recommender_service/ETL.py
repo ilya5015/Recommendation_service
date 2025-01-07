@@ -23,11 +23,20 @@ class ETL:
 
         # Выбор необходимых столбцов
         transformed_df = merged_df[['order_id', 'product_id', 'user_id', 'quantity']]
+
+        transformed_df = transformed_df.pivot_table(index='user_id', columns='product_id', values='quantity', fill_value=0)
+
+        # Сброс индекса для получения плоского DataFrame
+        transformed_df = transformed_df.reset_index()
+
+        # Переименование столбцов
+        transformed_df.columns.name = None  # Удаление имени столбцов
+        transformed_df.columns = ['user_id'] + [f'product_{int(col)}' for col in transformed_df.columns[1:]]
+
         return transformed_df
 
     def load(self, transformed_df):
         # Загрузка данных в целевую таблицу (можно настроить под ваши нужды)
-        print('pipeline load stage', transformed_df)
         return transformed_df
 
     def run_pipeline(self):
