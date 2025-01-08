@@ -3,6 +3,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import time
 from .ETL import ETL
+import json
 
 class ModelScheduler:
     def __init__(self, model, redis_client, database_url):
@@ -22,7 +23,12 @@ class ModelScheduler:
         orders_df = etl.run_pipeline()
         self.model.fit(orders_df)
         predictions = self.model.recommend_all()
-        print(predictions)
+        for row in predictions:
+            user_id = row.user_id
+            product_ids = [recommendation.product_id for recommendation in row.recommendations]
+            print(product_ids)
+            self.redis_client.set(user_id, json.dumps(product_ids))
+
 
     def start(self):
         self.run_task()

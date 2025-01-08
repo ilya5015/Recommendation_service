@@ -14,10 +14,12 @@ from pyspark.sql import SparkSession
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    scheduler = None 
+    scheduler = None
+    spark = None 
+    app.state.redis = None
     try:
         app.state.redis = initialize_db()
-        
+        app.state.redis.ping()
         spark = SparkSession.builder \
                 .appName("RecommendationService") \
                 .getOrCreate()
@@ -34,8 +36,11 @@ async def lifespan(app: FastAPI):
         if scheduler is not None:
             scheduler.stop()  # Останавливаем только если scheduler был инициализирован
 
-        spark.stop()
-        app.state.redis.close() 
+        if spark is not None:
+            spark.stop()
+
+        if app.state.redis is not None:
+            app.state.redis.close() 
         
 
 
