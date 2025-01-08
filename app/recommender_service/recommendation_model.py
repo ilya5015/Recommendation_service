@@ -1,80 +1,46 @@
 from pyspark.sql import SparkSession
-from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, sum as spark_sum
+from pyspark.sql.functions import col
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.linalg import Vectors
-from pyspark.ml import Pipeline
-from pyspark.ml.linalg import DenseVector
-from pyspark.ml.stat import Correlation
+from pyspark.ml.feature import Normalizer
+from pyspark.ml.clustering import KMeans
+from pyspark.ml.recommendation import ALS
+from pyspark.sql.types import IntegerType, DoubleType
+from pyspark.ml.feature import StringIndexer
+from pandas import DataFrame
 
 class RecommendationModel:
     def __init__(self, spark):
-        self.orders_df = None
-        self.user_product_matrix = None
-        self.user_similarity = None
         self.spark = spark
+        self.model = None
+        self.data = None
 
-    def fit(self, orders_df: DataFrame):
-        self.orders_df = self.spark.createDataFrame(orders_df)
-        print(self.orders_df.groupby('user_id'))
-        # матрица пользователей и продуктов
-        self.user_product_matrix = self.orders_df.groupby('user_id').agg(*[spark_sum(col(product)).alias(product) for product in self.orders_df.columns if product != 'user_id'])
-        # векторное представление
-        vector_assembler = VectorAssembler(inputCols=self.user_product_matrix.columns[1:], outputCol='features')
-        self.user_product_matrix = vector_assembler.transform(self.user_product_matrix)
+    def fit(self, data: DataFrame):
+        # Преобразуем Pandas DataFrame в Spark DataFrame
+        self.data = self.spark.createDataFrame(data)
 
-        # косинусное сходство
-        correlation_matrix = Correlation.corr(self.user_product_matrix, 'features').head()[0]
-        print(correlation_matrix)
+        # Получаем названия колонок продуктов
+        product_columns = self.data.columns[1:]  # Пропускаем user_id
 
-        self.user_similarity = correlation_matrix.toArray()
+        # Создаем выражение для stack
+        stack_expr = "stack({}, {}) as (product, rating)".format(
+            len(product_columns),
+            ', '.join([f"'{col}', {col}" for col in product_columns])
+        )
 
+        # Преобразуем данные в нужный формат
+        ratings = self.data.select("user_id", *product_columns)
+        ratings = ratings.selectExpr("user_id", stack_expr)
+        ratings = ratings.withColumn("product", col("product").cast("int"))
 
-    def recommend(self, user_id, top_n=5):
-        if user_id not in self.user_product_matrix.select('user_id').rdd.flatMap(lambda x: x).collect():
-            raise ValueError("Пользователь не найден в данных.")
-        
-        user_index = self.user_product_matrix.filter(col('user_id') == user_id).collect()[0][0]
-        # сходство пользователя с другими
-        user_similarities = self.user_similarity[user_index - 1]
-        # индексы пользователей, отсортированные по убыванию сходства
-        similar_users_indices = user_similarities.argsort()[::-1]
+        # Обучаем модель ALS
+        als = ALS(maxIter=10, regParam=0.01, userCol="user_id", itemCol="product", ratingCol="rating", coldStartStrategy="drop")
+        self.model = als.fit(ratings)
 
-        product_scores = {}
-
-        # цикл по схожим пользователям и суммирование их покупок
-        for index in similar_users_indices:
-            if index == user_index:
-                continue  
-            
-            similar_user_vector = self.user_product_matrix.collect()[index]['features'].toArray()
-            num_products = len(similar_user_vector)  
-
-            for product_index in range(num_products):
-                if similar_user_vector[product_index] > 0:  # Если продукт куплен
-                    product = self.user_product_matrix.columns[product_index + 1]  # +1, чтобы пропустить user_id
-                    if product not in product_scores:
-                        product_scores[product] = 0
-                    product_scores[product] += user_similarities[index]
-
-        # уже купленные продукты текущего пользователя из рекомендаций не включаются
-        user_orders = self.user_product_matrix.filter(col('user_id') == user_id).collect()[0]['features'].toArray()
-        for product_index in range(num_products):
-            product = self.user_product_matrix.columns[product_index + 1]  # +1, чтобы пропустить user_id
-            if user_orders[product_index] > 0 and product in product_scores:
-                del product_scores[product]
-
-        # сортировка продуктов по оценкам и возврат топ N
-        recommended_products = sorted(product_scores.items(), key=lambda x: x[1], reverse=True)
-        return [product for product, score in recommended_products[:top_n]]
-
-    def recommend_all(self):
-        # Извлечение значений колонки 'user_id'
-        user_ids = self.user_product_matrix.select("user_id").collect()
-
-        for row in user_ids:
-            print(row['user_id'])
-            recommendations = self.recommend(row['user_id'])
-            
+    def recommend(self, user_id, num_recommendations=3):
+        # Генерируем рекомендации для заданного пользователя
+        user_df = self.spark.createDataFrame([(user_id,)], ["user_id"])
+        recommendations = self.model.recommendForUserSubset(user_df, num_recommendations).collect()
+        return recommendations
 
 

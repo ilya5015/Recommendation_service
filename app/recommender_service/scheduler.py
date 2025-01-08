@@ -21,7 +21,8 @@ class ModelScheduler:
         etl = ETL(self.database_url)
         orders_df = etl.run_pipeline()
         self.model.fit(orders_df)
-        predictions = self.model.recommend_all()
+        predictions = self.model.recommend(1)
+        print(predictions)
 
     def start(self):
         self.run_task()

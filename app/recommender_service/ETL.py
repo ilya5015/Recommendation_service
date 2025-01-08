@@ -31,7 +31,7 @@ class ETL:
 
         # Переименование столбцов
         transformed_df.columns.name = None  # Удаление имени столбцов
-        transformed_df.columns = ['user_id'] + [f'product_{int(col)}' for col in transformed_df.columns[1:]]
+        transformed_df.columns = ['user_id'] + [int(col) for col in transformed_df.columns[1:]]
 
         return transformed_df
 
