@@ -16,26 +16,10 @@ class RecommendationModel:
         self.data = None
 
     def fit(self, data: DataFrame):
-        # Преобразуем Pandas DataFrame в Spark DataFrame
         self.data = self.spark.createDataFrame(data)
 
-        # Получаем названия колонок продуктов
-        product_columns = self.data.columns[1:]  # Пропускаем user_id
-
-        # Создаем выражение для stack
-        stack_expr = "stack({}, {}) as (product, rating)".format(
-            len(product_columns),
-            ', '.join([f"'{col}', {col}" for col in product_columns])
-        )
-
-        # Преобразуем данные в нужный формат
-        ratings = self.data.select("user_id", *product_columns)
-        ratings = ratings.selectExpr("user_id", stack_expr)
-        ratings = ratings.withColumn("product", col("product").cast("int"))
-
-        # Обучаем модель ALS
-        als = ALS(maxIter=10, regParam=0.01, userCol="user_id", itemCol="product", ratingCol="rating", coldStartStrategy="drop")
-        self.model = als.fit(ratings)
+        als = ALS(maxIter=10, regParam=0.01, userCol="user_id", itemCol="product_id", ratingCol="quantity", coldStartStrategy="drop")
+        self.model = als.fit(self.data)
 
     def recommend(self, user_id, num_recommendations=3):
         # Генерируем рекомендации для заданного пользователя
@@ -43,4 +27,6 @@ class RecommendationModel:
         recommendations = self.model.recommendForUserSubset(user_df, num_recommendations).collect()
         return recommendations
 
-
+    def recommend_all(self, num_recommendations=3):
+        recommendations = self.model.recommendForAllUsers(num_recommendations).collect()
+        return recommendations
