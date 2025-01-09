@@ -2,11 +2,11 @@ from fastapi import FastAPI
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import time
-from .ETL import ETL
 import json
+from app.controllers.recommendations_controller import RecommendationsController
 
 class ModelScheduler:
-    def __init__(self, model, redis_client, database_url):
+    def __init__(self, model, redis_client, etl):
         self.model = model  # экземпляр рекомендательной модели
         self.redis_client = redis_client  # клиент Redis
         self.scheduler = BackgroundScheduler()
@@ -16,18 +16,17 @@ class ModelScheduler:
             id='model_recommendation_job',
             replace_existing=True
         )
-        self.database_url = database_url    
+        self.etl = etl
+        self.recommendations_controller = RecommendationsController(redis_client)
 
     def run_task(self):
-        etl = ETL(self.database_url)
-        orders_df = etl.run_pipeline()
+        orders_df = self.etl.run_pipeline()
         self.model.fit(orders_df)
         predictions = self.model.recommend_all()
         for row in predictions:
             user_id = row.user_id
             product_ids = [recommendation.product_id for recommendation in row.recommendations]
-            print(product_ids)
-            self.redis_client.set(user_id, json.dumps(product_ids))
+            self.recommendations_controller.set_recommendations(user_id, product_ids)
 
 
     def start(self):

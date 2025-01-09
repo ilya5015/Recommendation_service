@@ -8,8 +8,8 @@ from core.config import settings
 from redis_client.redis_config import initialize_db
 from contextlib import asynccontextmanager
 from recommender_service.recommendation_model import RecommendationModel
-from recommender_service.scheduler import ModelScheduler
-
+from scheduler.scheduler import ModelScheduler
+from recommender_service.ETL import ETL
 from pyspark.sql import SparkSession
 
 @asynccontextmanager
@@ -26,7 +26,9 @@ async def lifespan(app: FastAPI):
 
         model = RecommendationModel(spark)
 
-        scheduler = ModelScheduler(model, app.state.redis, settings.db.database_url)
+        etl = ETL(settings.db.database_url)
+
+        scheduler = ModelScheduler(model, app.state.redis, etl)
 
         scheduler.start()
         yield
